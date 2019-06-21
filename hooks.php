@@ -58,7 +58,6 @@ function redistribute_posts() {
 	);
 	$posts = $query->posts;
 	if ( ! empty( $posts ) ) {
-		remove_filter( 'dt_send_notification_allow_in_background', __NAMESPACE__ . '\schedule_send_notifications', 10 );
 		$post_ids = array();
 		foreach ( $posts as $post ) {
 			$post_ids[] = $post->ID;
@@ -78,7 +77,6 @@ function redistribute_posts() {
 		if ( $query->found_posts > $query->post_count ) {
 			wp_schedule_single_event( time(), 'dt_redistribute_posts_hook' );
 		}
-		add_filter( 'dt_send_notification_allow_in_background', __NAMESPACE__ . '\schedule_send_notifications', 10, 3 );
 	}
 
 }
