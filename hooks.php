@@ -10,6 +10,7 @@ function setup() {
 		'init',
 		function () {
 			add_filter( 'dt_send_notification_allow_in_background', __NAMESPACE__ . '\schedule_send_notifications', 10, 3 );
+			add_filter( 'dt_successfully_distributed_message', __NAMESPACE__ . '\change_successfully_distributed_message', 10, 1 );
 			add_action( 'dt_redistribute_posts_hook', __NAMESPACE__ . '\redistribute_posts' );
 		}
 	);
@@ -79,4 +80,8 @@ function redistribute_posts() {
 		}
 	}
 
+}
+
+function change_successfully_distributed_message( $message ) {
+	return esc_html__( 'Post scheduled.', 'distributor' );
 }
