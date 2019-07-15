@@ -1,6 +1,6 @@
 <?php
 
-namespace DistributorInBackground\Hooks;
+namespace DT\NbAddon\DTInBackground\Hooks;
 
 /**
  * Setup actions
