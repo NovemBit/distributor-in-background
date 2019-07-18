@@ -11,10 +11,3 @@ namespace DT\NbAddon\DTInBackground\Helpers;
 function is_btm_active() {
 	return defined( 'BTM_PLUGIN_ACTIVE' ) && true === BTM_PLUGIN_ACTIVE;
 }
-
-/**
- * Fetch plug-in options
- */
-function get_options() {
-	return get_option( 'dtbg_settings', [] );
-}
