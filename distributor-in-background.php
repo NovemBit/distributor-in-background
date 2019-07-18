@@ -15,7 +15,7 @@ function dt_bg_add_on_bootstrap() {
 	if ( ! function_exists( '\Distributor\ExternalConnectionCPT\setup' ) ) {
 		if ( is_admin() ) {
 			add_action( 'admin_notices', function() {
-				printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( 'notice notice-error' ), esc_html( 'You need to have Distributor plug-in activated to run the Distributor WooCommerce Add-on.', 'distributor-acf' ) );
+				printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( 'notice notice-error' ), esc_html( 'You need to have Distributor plug-in activated to run the Distributor WooCommerce Add-on.', 'distributor-bg' ) );
 			} );
 		}
 		return;
@@ -23,5 +23,4 @@ function dt_bg_add_on_bootstrap() {
 
 	require_once plugin_dir_path( __FILE__ ) . 'manager.php';
 }
-
 add_action( 'plugins_loaded', 'dt_bg_add_on_bootstrap' );

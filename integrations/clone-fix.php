@@ -11,7 +11,9 @@ function setup() {
 		function () {
 			add_filter( 'dt_allow_clone_fix', __NAMESPACE__ . '\schedule_clone_fix', 10, 3 );
 			add_action( 'dt_clone_fix_hook', __NAMESPACE__ . '\clone_fix', 10, 2 );
-			add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'clone_fix_in_bg', __NAMESPACE__ . '\bg_clone_fix', 10, 3 );
+			if( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
+				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'clone_fix_in_bg', __NAMESPACE__ . '\bg_clone_fix', 10, 3 );
+			}
 		}
 	);
 }

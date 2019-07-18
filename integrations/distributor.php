@@ -14,8 +14,10 @@ function setup() {
 			add_filter( 'dt_successfully_distributed_message', __NAMESPACE__ . '\change_successfully_distributed_message', 10, 1 );
 			add_action( 'dt_redistribute_posts_hook', __NAMESPACE__ . '\redistribute_posts', 10, 1 );
 			add_action( 'dt_push_posts_hook', __NAMESPACE__ . '\push_action', 10, 1 );
-			add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'send_notification_in_bg', __NAMESPACE__ . '\bg_redistribute_posts', 10, 3 );
-			add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_in_bg', __NAMESPACE__ . '\bg_push_posts', 10, 3 );
+			if( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
+				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'send_notification_in_bg', __NAMESPACE__ . '\bg_redistribute_posts', 10, 3 );
+				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_in_bg', __NAMESPACE__ . '\bg_push_posts', 10, 3 );
+			}
 		}
 	);
 }
@@ -116,7 +118,9 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
  * @param int $post_id
  */
 function redistribute_posts( $post_id ) {
+
 	\Distributor\Subscriptions\send_notifications( $post_id );
+
 }
 
 /**
