@@ -1,4 +1,9 @@
 <?php
+/**
+ * Handle woocommerce integration
+ *
+ * @package distributor-in-background
+ */
 
 namespace DT\NbAddon\DTInBackground\WC;
 
