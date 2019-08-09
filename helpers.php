@@ -1,7 +1,11 @@
 <?php
+/**
+ * Helper functions
+ *
+ * @package distributor-in-background
+ */
 
 namespace DT\NbAddon\DTInBackground\Helpers;
-
 
 /**
  * Helper function to determine whether 'wp task manager' plug-in is active or not
