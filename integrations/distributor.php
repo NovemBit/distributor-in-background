@@ -1,4 +1,9 @@
 <?php
+/**
+ * Handle core Distributor integration
+ *
+ * @package distributor-in-background
+ */
 
 namespace DT\NbAddon\DTInBackground\Distributor;
 
@@ -14,7 +19,7 @@ function setup() {
 			add_filter( 'dt_successfully_distributed_message', __NAMESPACE__ . '\change_successfully_distributed_message', 10, 1 );
 			add_action( 'dt_redistribute_posts_hook', __NAMESPACE__ . '\redistribute_posts', 10, 1 );
 			add_action( 'dt_push_posts_hook', __NAMESPACE__ . '\push_action', 10, 1 );
-			if( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
+			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'send_notification_in_bg', __NAMESPACE__ . '\bg_redistribute_posts', 10, 3 );
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_in_bg', __NAMESPACE__ . '\bg_push_posts', 10, 3 );
 			}
@@ -46,6 +51,8 @@ function schedule_send_notifications( $allow_send_notifications, $post_id ) {
 }
 
 /**
+ * Process scheduled redistribution
+ *
  * @param \BTM_Task_Run_Filter_Log  $task_run_filter_log     The logs that callback functions should return
  * @param mixed[]                   $callback_args                            Empty
  * @param \BTM_Task_Bulk_Argument[] $bulk_args              Contains post ids
@@ -67,8 +74,8 @@ function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, a
 /**
  * Schedule post push
  *
- * @param bool  $allow_push
- * @param array $params
+ * @param bool  $allow_push Push will be processed.
+ * @param array $params Array containing callback params.
  *
  * @return bool
  */
@@ -85,6 +92,8 @@ function schedule_push_action( $allow_push, $params ) {
 }
 
 /**
+ * Process push
+ *
  * @param \BTM_Task_Run_Filter_Log  $task_run_filter_log     The logs that callback functions should return
  * @param mixed[]                   $callback_args                            Empty
  * @param \BTM_Task_Bulk_Argument[] $bulk_args              Contains $_POST data
@@ -115,7 +124,7 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
 /**
  * Perform posts redistribution
  *
- * @param int $post_id
+ * @param int $post_id Post ID to be redistributed.
  */
 function redistribute_posts( $post_id ) {
 
@@ -126,7 +135,7 @@ function redistribute_posts( $post_id ) {
 /**
  * Scheduled push action callback
  *
- * @param array $params
+ * @param array $params Callback parameters.
  *
  * @return array
  */
@@ -137,7 +146,7 @@ function push_action( $params ) {
 /**
  * Change success message as instead of immediately distribution post scheduled to be distributed
  *
- * @param string $message
+ * @param string $message Message to send.
  *
  * @return string
  */
