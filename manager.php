@@ -22,7 +22,13 @@ if ( function_exists( 'dt_wc_add_on_bootstrap' ) ) {
 	require_once __DIR__ . '/integrations/woocommerce.php';
 	\DT\NbAddon\DTInBackground\WC\setup();
 }
+
 if ( function_exists( 'dt_comments_add_on_bootstrap' ) ) {
 	require_once __DIR__ . '/integrations/comments.php';
 	\DT\NbAddon\DTInBackground\Comments\setup();
+}
+
+if ( function_exists( 'dt_groups_taxonomy_add_on_bootstrap' ) ) {
+	require_once __DIR__ . '/integrations/groups-taxonomy.php';
+	\DT\NbAddon\DTInBackground\GroupsTaxonomy\setup();
 }
