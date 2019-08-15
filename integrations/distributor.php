@@ -105,10 +105,10 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
 
 	$result = push_action( $params );
 	$status = '';
-	if ( isset( $result['results']['external']['status'] ) ) {
-		$status = $result['results']['external']['status'];
-	} elseif ( isset( $result['results']['internal']['status'] ) ) {
-		$status = $result['results']['internal']['status'];
+	if ( ! empty( $result['results']['external'] ) ) {
+		$status = reset($result['results']['external'])['status'];
+	} elseif ( ! empty( $result['results']['internal'] ) ) {
+		$status = reset($result['results']['internal'])['status'];
 	}
 
 	if ( 'success' === $status ) {
