@@ -48,7 +48,7 @@ function schedule_comment_insert( $comment_processing_allowed, $post_id, $remote
 		wp_schedule_single_event( time(), 'dt_comments_insert_hook', [ $post_id, $remote_post_id, $signature, $target_url ] );
 	}
 
-	return true;
+	return false;
 }
 /**
  * Schedule comment update
@@ -68,7 +68,7 @@ function schedule_comments_update( $comment_processing_allowed, $parent_post_id,
 		wp_schedule_single_event( time(), 'dt_comment_update_hook', [ $parent_post_id, $comment_id ] );
 	}
 
-	return true;
+	return false;
 }
 
 /**

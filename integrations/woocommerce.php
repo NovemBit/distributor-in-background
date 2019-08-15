@@ -47,7 +47,7 @@ function schedule_variation_insert( $variation_processing_allowed, $post_id, $re
 		wp_schedule_single_event( time(), 'dt_wc_variation_insert_hook', [ $post_id, $remote_post_id, $signature, $target_url ] );
 	}
 
-	return true;
+	return false;
 }
 /**
  * Schedule variation update
@@ -67,7 +67,7 @@ function schedule_variation_update( $variation_processing_allowed, $parent_post_
 		wp_schedule_single_event( time(), 'dt_wc_variation_update_hook', [ $parent_post_id, $variation_id ] );
 	}
 
-	return true;
+	return false;
 }
 
 /**
