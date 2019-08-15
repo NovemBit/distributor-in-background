@@ -102,7 +102,7 @@ function dt_push_groups() {
 				$pushed_connections_map = get_post_meta( $post->ID, 'dt_connection_map', true );
 
 				foreach ( $push_connections as $con ) {
-					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array( $con['id'], array_keys( $pushed_connections_map['external'] ), true ) ) {
+					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array( $con['id'], array_keys( $pushed_connections_map['external'] ) ) ) { //phpcs:ignore
 						\DT\NbAddon\GroupsTaxonomy\Hooks\push_connection( $con, $post );
 					}
 				}
