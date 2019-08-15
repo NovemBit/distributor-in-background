@@ -14,9 +14,9 @@ function setup() {
 	add_action(
 		'init',
 		function () {
-			add_filter( 'dt_allow_wc_variations_update', __NAMESPACE__ . '\schedule_variation_update', 10, 4 );
+			add_filter( 'dt_allow_wc_variations_update', __NAMESPACE__ . '\schedule_variation_update', 10, 3 );
 			add_action( 'dt_wc_variation_update_hook', __NAMESPACE__ . '\variation_update', 10, 2 );
-			add_filter( 'dt_allow_wc_variations_insert', __NAMESPACE__ . '\schedule_variation_insert', 10, 4 );
+			add_filter( 'dt_allow_wc_variations_insert', __NAMESPACE__ . '\schedule_variation_insert', 10, 5 );
 			add_action( 'dt_wc_variation_insert_hook', __NAMESPACE__ . '\variation_insert', 10, 4 );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'wc_variations_update_in_bg', __NAMESPACE__ . '\bg_wc_variations_update', 10, 3 );
