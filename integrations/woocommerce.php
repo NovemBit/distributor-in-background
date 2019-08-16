@@ -84,7 +84,7 @@ function bg_wc_variations_insert( \BTM_Task_Run_Filter_Log $task_run_filter_log,
 	$remote_post_id = $args[1];
 	$signature      = $args[2];
 	$target_url     = $args[3];
-	\DT\NbAddon\WC\Hub\push_variations( $post_id, $remote_post_id, $signature, $target_url );
+	\DT\NbAddon\WC\Hub\push_variations( $post_id, $remote_post_id, $signature, $target_url, false );
 	$message = "initial variation insert for {$post_id} which distributed as {$remote_post_id} in {$target_url}";
 	$task_run_filter_log->add_log( $message );
 
@@ -127,7 +127,7 @@ function bg_wc_variations_update( \BTM_Task_Run_Filter_Log $task_run_filter_log,
  */
 function variation_insert( $post_id, $remote_post_id, $signature, $target_url ) {
 	if ( function_exists( '\DT\NbAddon\WC\Hub\push_variations' ) ) {
-		return \DT\NbAddon\WC\Hub\push_variations( $post_id, $remote_post_id, $signature, $target_url );
+		return \DT\NbAddon\WC\Hub\push_variations( $post_id, $remote_post_id, $signature, $target_url, false );
 	}
 }
 
