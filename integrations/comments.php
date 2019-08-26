@@ -16,7 +16,7 @@ function setup() {
 		function () {
 			add_filter( 'dt_allow_comments_update', __NAMESPACE__ . '\schedule_comments_update', 10, 3 );
 			add_action( 'dt_comments_hook', __NAMESPACE__ . '\comments_update', 10, 2 );
-			add_filter( 'dt_allow_comments_initial_push', __NAMESPACE__ . '\schedule_comment_insert', 10, 5 );
+			add_filter( 'dt_allow_comments_initial_push', __NAMESPACE__ . '\schedule_comments_insert', 10, 5 );
 			add_action( 'dt_comment_insert_hook', __NAMESPACE__ . '\comment_insert', 10, 4 );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'comments_update_in_bg', __NAMESPACE__ . '\bg_comments_update', 10, 3 );
@@ -25,9 +25,6 @@ function setup() {
 		}
 	);
 }
-
-
-
 
 /**
  * Schedule comments insert
@@ -40,7 +37,7 @@ function setup() {
  *
  * @return bool
  */
-function schedule_comment_insert( $comment_processing_allowed, $post_id, $remote_post_id, $signature, $target_url ) {
+function schedule_comments_insert( $comment_processing_allowed, $post_id, $remote_post_id, $signature, $target_url ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task = new \BTM_Task( 'comments_insert_in_bg', [ $post_id, $remote_post_id, $signature, $target_url ], 10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [] );
@@ -59,7 +56,7 @@ function schedule_comment_insert( $comment_processing_allowed, $post_id, $remote
  *
  * @return bool
  */
-function schedule_comment_update( $comment_processing_allowed, $parent_post_id, $comment_id ) {
+function schedule_comments_update( $comment_processing_allowed, $parent_post_id, $comment_id ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task     = new \BTM_Task( 'comments_update_in_bg', [ $parent_post_id ], 10 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $comment_id ], -10 );
