@@ -9,7 +9,7 @@ function setup() {
 	add_action(
 		'init',
 		function () {
-			add_action( 'dt_groups_taxonomy_metabox_saved', __NAMESPACE__ . '\schedule_push_groups', 10, 0 );
+			add_action( 'dt_groups_taxonomy_metabox_saved', __NAMESPACE__ . '\schedule_push_groups', 10, 2 );
 			add_action( 'dt_push_groups_hook', __NAMESPACE__ . '\dt_push_groups' );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_groups_in_bg', __NAMESPACE__ . '\bg_push_groups', 10, 3 );
@@ -20,13 +20,18 @@ function setup() {
 
 /**
  * Schedule Groups Taxonomies distribution
+ *
+ * @param int  $post_id Post id
+ * @param bool $are_groups_updated Whether groups updated or not
  */
-function schedule_push_groups() {
-	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
-		$btm_task = new \BTM_Task( 'push_groups_in_bg', [], 10 );
-		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [] );
-	} elseif ( ! wp_next_scheduled( 'dt_push_groups_hook' ) ) {
-		wp_schedule_single_event( time(), 'dt_push_groups_hook', [] );
+function schedule_push_groups( $post_id, $are_groups_updated ) {
+	if( true === $are_groups_updated ) {
+		if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
+			$btm_task = new \BTM_Task( 'push_groups_in_bg', [], 10 );
+			\BTM_Task_Manager::get_instance()->register_task( $btm_task, [] );
+		} elseif ( ! wp_next_scheduled( 'dt_push_groups_hook' ) ) {
+			wp_schedule_single_event( time(), 'dt_push_groups_hook', [] );
+		}
 	}
 }
 
