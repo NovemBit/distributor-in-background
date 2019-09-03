@@ -15,7 +15,6 @@ function setup() {
 		'init',
 		function () {
 			add_filter( 'dt_allow_clone_fix', __NAMESPACE__ . '\schedule_clone_fix', 10, 3 );
-			add_action( 'dt_clone_fix_hook', __NAMESPACE__ . '\clone_fix', 10, 2 );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'clone_fix_in_bg', __NAMESPACE__ . '\bg_clone_fix', 10, 3 );
 			}
@@ -36,9 +35,9 @@ function schedule_clone_fix( $clone_fix_in_bg, $posts, $connection_id ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task     = new \BTM_Task( 'clone_fix_in_bg', [ $connection_id ], 10 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( is_array( $posts ) ? $posts : [ $posts ], -10 );
-		\BTM_Task_Manager::get_instance()->register_task_bulk( $btm_task, $btm_bulk_arg );
-	} elseif ( ! wp_next_scheduled( 'dt_clone_fix_hook' ) ) {
-		wp_schedule_single_event( time(), 'dt_clone_fix_hook', [ $posts, $connection_id ] );
+		\BTM_Task_Manager::get_instance()->register_task_bulk( $btm_task, [ $btm_bulk_arg ] );
+
+		return false;
 	}
 
 	return true;

@@ -15,9 +15,7 @@ function setup() {
 		'init',
 		function () {
 			add_filter( 'dt_allow_wc_variations_update', __NAMESPACE__ . '\schedule_variation_update', 10, 3 );
-			add_action( 'dt_wc_variation_update_hook', __NAMESPACE__ . '\variation_update', 10, 2 );
 			add_filter( 'dt_allow_wc_variations_insert', __NAMESPACE__ . '\schedule_variation_insert', 10, 5 );
-			add_action( 'dt_wc_variation_insert_hook', __NAMESPACE__ . '\variation_insert', 10, 4 );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'wc_variations_update_in_bg', __NAMESPACE__ . '\bg_wc_variations_update', 10, 3 );
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'wc_variations_insert_in_bg', __NAMESPACE__ . '\bg_wc_variations_insert', 10, 3 );
@@ -43,11 +41,11 @@ function schedule_variation_insert( $variation_processing_allowed, $post_id, $re
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task = new \BTM_Task( 'wc_variations_insert_in_bg', [ $post_id, $remote_post_id, $signature, $target_url ], 10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [] );
-	} elseif ( ! wp_next_scheduled( 'dt_wc_variation_insert_hook' ) ) {
-		wp_schedule_single_event( time(), 'dt_wc_variation_insert_hook', [ $post_id, $remote_post_id, $signature, $target_url ] );
+
+		return false;
 	}
 
-	return false;
+	return true;
 }
 /**
  * Schedule variation update
@@ -63,11 +61,11 @@ function schedule_variation_update( $variation_processing_allowed, $parent_post_
 		$btm_task     = new \BTM_Task( 'wc_variations_update_in_bg', [ $parent_post_id ], 10 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $variation_id ], -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
-	} elseif ( ! wp_next_scheduled( 'dt_wc_variation_update_hook' ) ) {
-		wp_schedule_single_event( time(), 'dt_wc_variation_update_hook', [ $parent_post_id, $variation_id ] );
+
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 /**
@@ -106,7 +104,9 @@ function bg_wc_variations_update( \BTM_Task_Run_Filter_Log $task_run_filter_log,
 	foreach ( $bulk_args as $var_arg ) {
 		$variations[] = $var_arg->get_callback_arguments()[0];
 	}
-	\DT\NbAddon\WC\Hub\process_variation_update( $parent_post_id, $variations );
+
+	variation_update( $parent_post_id, $variations );
+
 	$message = 'updated variation' . ( count( $variations ) > 1 ? 's' : '' ) . ': ' . implode( ', ', $variations ) . ' in ' . $parent_post_id . ' post';
 	$task_run_filter_log->add_log( $message );
 
@@ -134,8 +134,8 @@ function variation_insert( $post_id, $remote_post_id, $signature, $target_url ) 
 /**
  * Variation update action callback
  *
- * @param int $parent_post_id Parent post ID.
- * @param int $variation_id Updated variation ID.
+ * @param int       $parent_post_id Parent post ID.
+ * @param int|array $variation_id Updated variation ID.
  *
  * @return array
  */

@@ -17,8 +17,6 @@ function setup() {
 			add_filter( 'dt_allow_send_notifications', __NAMESPACE__ . '\schedule_send_notifications', 10, 2 );
 			add_filter( 'dt_allow_push', __NAMESPACE__ . '\schedule_push_action', 10, 2 );
 			add_filter( 'dt_successfully_distributed_message', __NAMESPACE__ . '\change_successfully_distributed_message', 10, 1 );
-			add_action( 'dt_redistribute_posts_hook', __NAMESPACE__ . '\redistribute_posts', 10, 1 );
-			add_action( 'dt_push_posts_hook', __NAMESPACE__ . '\push_action', 10, 1 );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'send_notification_in_bg', __NAMESPACE__ . '\bg_redistribute_posts', 10, 3 );
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_in_bg', __NAMESPACE__ . '\bg_push_posts', 10, 3 );
@@ -40,14 +38,11 @@ function schedule_send_notifications( $allow_send_notifications, $post_id ) {
 		$btm_task     = new \BTM_Task( 'send_notification_in_bg', [], 1 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $post_id ], -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
-	} else {
-		update_post_meta( $post_id, 'dt_redistribute_post', 'yes' );
-		if ( ! wp_next_scheduled( 'dt_redistribute_posts_hook' ) ) {
-			wp_schedule_single_event( time(), 'dt_redistribute_posts_hook', [ $post_id ] );
-		}
+
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 /**
@@ -84,11 +79,11 @@ function schedule_push_action( $allow_push, $params ) {
 		$btm_task     = new \BTM_Task( 'push_in_bg', [], 1 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $params ], -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
-	} elseif ( ! wp_next_scheduled( 'dt_push_posts_hook' ) ) {
-		wp_schedule_single_event( time(), 'dt_push_posts_hook', [ $params ] );
+
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 /**
