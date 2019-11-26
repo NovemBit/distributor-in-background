@@ -58,7 +58,7 @@ function bg_push_groups( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $c
 function dt_push_groups() {
 	$query = new \WP_Query(
 		array(
-			'post_type'      => \DT\NbAddon\GroupsTaxonomy\Utils\get_distributable_custom_post_types(),
+			'post_type'      => \DT\NbAddon\Brandlight\Utils\get_distributable_custom_post_types(),
 			'orderby'        => 'ID',
 			'order'          => 'ASC',
 			'posts_per_page' => 20,
