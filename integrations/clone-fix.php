@@ -34,8 +34,8 @@ function setup() {
 function schedule_clone_fix( $clone_fix_in_bg, $posts, $connection_id ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task     = new \BTM_Task( 'clone_fix_in_bg', [ $connection_id ], 10 );
-		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( is_array( $posts ) ? $posts : [ $posts ], -10 );
-		\BTM_Task_Manager::get_instance()->register_task_bulk( $btm_task, [ $btm_bulk_arg ] );
+		$btm_bulk_arg =  is_array( $posts ) ? $posts : [ $posts ];
+		\BTM_Task_Manager::get_instance()->register_task_bulk( $btm_task,  $btm_bulk_arg  );
 
 		return false;
 	}
@@ -70,10 +70,9 @@ function bg_clone_fix( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $cal
 	$connection_id = $callback_args[0];
 	$posts         = array();
 	foreach ( $bulk_args as $post_arg ) {
-		$posts[ $post_arg->get_callback_arguments()[0] ] = $post_arg;
+		$posts = $post_arg->get_callback_arguments();
 	}
-
-	$status = clone_fix( array_keys( $posts ), $connection_id );
+	$status = clone_fix(  $posts, $connection_id );
 	if ( ! $status ) {
 		$task_run_filter_log->set_bulk_fails( $bulk_args );
 		$task_run_filter_log->add_log( 'failed to fix posts in connection: ' . $connection_id );
