@@ -70,9 +70,11 @@ function bg_clone_fix( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $cal
 	$connection_id = $callback_args[0];
 	$posts         = array();
 	foreach ( $bulk_args as $post_arg ) {
-		$posts = $post_arg->get_callback_arguments();
+		$posts[] = $post_arg->get_callback_arguments()[0];
 	}
+	
 	$status = clone_fix(  $posts, $connection_id );
+	
 	if ( ! $status ) {
 		$task_run_filter_log->set_bulk_fails( $bulk_args );
 		$task_run_filter_log->add_log( 'failed to fix posts in connection: ' . $connection_id );
