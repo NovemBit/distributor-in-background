@@ -91,7 +91,7 @@ function dt_push_groups() {
 		$post        = $query->post;
 		$found_posts = $query->found_posts;
 
-		if ( $post instanceof \WP_Post ) {
+		if ( $post ) {
 			$post_ids[] = $post->ID;
 			$groups_pushing = get_post_meta( $post->ID, 'dt_connection_groups_pushing', true );
 			delete_post_meta( $post->ID, 'dt_connection_groups_pushing' );
