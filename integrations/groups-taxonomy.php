@@ -33,6 +33,17 @@ function schedule_push_groups( $post_id, $are_groups_updated ) {
 }
 
 /**
+ * Schedule the next pack of posts to be distributed
+ */
+function schedule_next_pack() {
+	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
+		$btm_task = new \BTM_Task( 'push_groups_in_bg', [], 10 );
+		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [] );
+	}
+}
+
+
+/**
  * Process scheduled redistribution
  *
  * @param \BTM_Task_Run_Filter_Log $task_run_filter_log The logs that callback functions should return
@@ -43,9 +54,10 @@ function schedule_push_groups( $post_id, $are_groups_updated ) {
  */
 function bg_push_groups( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $callback_args, array $bulk_args ) {
 
-	dt_push_groups();
+	$pushed_post_ids = dt_push_groups();
 
 	$task_run_filter_log->add_log( 'Groups taxonomy pushed' );
+	$task_run_filter_log->add_log( implode( $pushed_post_ids, ', ' ) );
 
 	$task_run_filter_log->set_failed( false );
 
@@ -56,78 +68,89 @@ function bg_push_groups( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $c
  * Perform scheduled push groups
  */
 function dt_push_groups() {
-	$query = new \WP_Query(
-		array(
-			'post_type'      => \DT\NbAddon\Brandlight\Utils\get_distributable_custom_post_types(),
-			'orderby'        => 'ID',
-			'order'          => 'ASC',
-			'posts_per_page' => 20,
-			'meta_query'     => array(
-				'relation' => 'AND',
-				array(
-					'key'     => 'dt_connection_groups_pushing',
-					'compare' => 'EXISTS',
+	$found_posts = 0;
+	$count       = 0;
+	$exists_post = true;
+	$post_ids    = [];
+
+	while ( $count++ < 5 && $exists_post ) {
+		$query = new \WP_Query(
+			array(
+				'post_type'      => \DT\NbAddon\Brandlight\Utils\get_distributable_custom_post_types(),
+				'posts_per_page' => 1,
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'     => 'dt_connection_groups_pushing',
+						'compare' => 'EXISTS',
+					),
 				),
-			),
-		)
-	);
+			)
+		);
 
-	$all_posts = $query->posts;
-	if ( ! empty( $all_posts ) ) {
-		foreach ( $all_posts as $post ) {
-			$connection_map = get_post_meta( $post->ID, 'dt_connection_groups_pushing', true );
-			if ( empty( $connection_map ) ) {
-				delete_post_meta( $post->ID, 'dt_connection_groups_pushing' );
+		$post        = $query->post;
+		$found_posts = $query->found_posts;
+
+		if ( $post instanceof \WP_Post ) {
+			$post_ids[] = $post->ID;
+			$groups_pushing = get_post_meta( $post->ID, 'dt_connection_groups_pushing', true );
+			delete_post_meta( $post->ID, 'dt_connection_groups_pushing' );
+
+			if ( empty( $groups_pushing ) ) {
 				continue;
-			} elseif ( ! is_array( $connection_map ) ) {
-				$connection_map = array( $connection_map );
+			} elseif ( ! is_array( $groups_pushing ) ) {
+				$groups_pushing = array( $groups_pushing );
 			}
-			$successed_groups = get_post_meta( $post->ID, 'dt_connection_groups_pushed', true );
-			if ( empty( $successed_groups ) || null === $successed_groups ) {
-				$successed_groups = array();
-			}
-			foreach ( $connection_map as $group ) {
 
-				$index                = get_term_by( 'slug', $group, 'dt_ext_connection_group' )->term_id;
+			$succeeded_groups = get_post_meta( $post->ID, 'dt_connection_groups_pushed', true );
+
+			if ( empty( $successed_groups ) || null === $succeeded_groups ) {
+				$succeeded_groups = array();
+			}
+
+			foreach ( $groups_pushing as $key => $group ) {
 				$push_connections = \DT\NbAddon\GroupsTaxonomy\Hooks\get_connections( $group );
+
 				if ( empty( $push_connections ) ) {
-					$key = array_search( $group, $connection_map, true );
-					if ( ! in_array( $group, $successed_groups, true ) ) {
-						$successed_groups[] = $group;
-						update_post_meta( $post->ID, 'dt_connection_groups_pushed', $successed_groups );
+					if ( ! in_array( $group, $succeeded_groups, true ) ) {
+						$succeeded_groups[] = $group;
+						update_post_meta( $post->ID, 'dt_connection_groups_pushed', $succeeded_groups );
 					}
 					if ( false !== $key || null !== $key ) {
-						unset( $connection_map[ $key ] );
+						unset( $groups_pushing[ $key ] );
 					}
 					continue;
 				}
+
 				$pushed_connections_map = get_post_meta( $post->ID, 'dt_connection_map', true );
 
 				foreach ( $push_connections as $con ) {
-					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array( $con['id'], array_keys( $pushed_connections_map['external'] ) ) ) { //phpcs:ignore
+					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array($con['id'], array_keys( $pushed_connections_map['external'] ) ) ) { //phpcs:ignore
 						\DT\NbAddon\GroupsTaxonomy\Hooks\push_connection( $con, $post );
 					}
 				}
 
-				$key = array_search( $group, $connection_map, true );
-				if ( ! in_array( $group, $successed_groups, true ) ) {
-					$successed_groups[] = $group;
-					update_post_meta( $post->ID, 'dt_connection_groups_pushed', $successed_groups );
+				if ( ! in_array( $group, $succeeded_groups, true ) ) {
+					$succeeded_groups[] = $group;
+					update_post_meta( $post->ID, 'dt_connection_groups_pushed', $succeeded_groups );
 				}
 				if ( false !== $key || null !== $key ) {
-					unset( $connection_map[ $key ] );
+					unset( $groups_pushing[ $key ] );
 				}
 			}
-			if ( empty( $connection_map ) ) {
-				delete_post_meta( $post->ID, 'dt_connection_groups_pushing' );
-			} else {
-				update_post_meta( $post->ID, 'dt_connection_groups_pushing', $connection_map );
+
+			if ( ! empty( $groups_pushing ) ) {
+				update_post_meta( $post->ID, 'dt_connection_groups_pushing_failed', $groups_pushing );
 			}
+		} else {
+			$exists_post = false;
 		}
 	}
 
 	// Re-schedule a new event when there are still others to be distributed.
-	if ( $query->found_posts > $query->post_count ) {
-		schedule_push_groups();
+	if ( $found_posts > 5 ) {
+		schedule_next_pack();
 	}
+
+	return $post_ids;
 }
