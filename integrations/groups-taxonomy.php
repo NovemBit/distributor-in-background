@@ -110,14 +110,12 @@ function dt_push_groups() {
 
 			foreach ( $groups_pushing as $key => $group ) {
 				$push_connections = \DT\NbAddon\GroupsTaxonomy\Hooks\get_connections( $group );
+				unset( $groups_pushing[ $key ] );
 
 				if ( empty( $push_connections ) ) {
 					if ( ! in_array( $group, $succeeded_groups, true ) ) {
 						$succeeded_groups[] = $group;
 						update_post_meta( $post->ID, 'dt_connection_groups_pushed', $succeeded_groups );
-					}
-					if ( false !== $key || null !== $key ) {
-						unset( $groups_pushing[ $key ] );
 					}
 					continue;
 				}
@@ -125,7 +123,7 @@ function dt_push_groups() {
 				$pushed_connections_map = get_post_meta( $post->ID, 'dt_connection_map', true );
 
 				foreach ( $push_connections as $con ) {
-					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array($con['id'], array_keys( $pushed_connections_map['external'] ) ) ) { //phpcs:ignore
+					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array( $con['id'], array_keys( $pushed_connections_map['external'] ) ) ) { //phpcs:ignore
 						\DT\NbAddon\GroupsTaxonomy\Hooks\push_connection( $con, $post );
 					}
 				}
@@ -133,9 +131,6 @@ function dt_push_groups() {
 				if ( ! in_array( $group, $succeeded_groups, true ) ) {
 					$succeeded_groups[] = $group;
 					update_post_meta( $post->ID, 'dt_connection_groups_pushed', $succeeded_groups );
-				}
-				if ( false !== $key || null !== $key ) {
-					unset( $groups_pushing[ $key ] );
 				}
 			}
 
@@ -148,7 +143,7 @@ function dt_push_groups() {
 	}
 
 	// Re-schedule a new event when there are still others to be distributed.
-	if ( $found_posts > 5 ) {
+	if ( $found_posts > 1 ) {
 		schedule_next_pack();
 	}
 
