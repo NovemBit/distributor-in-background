@@ -92,7 +92,7 @@ function dt_push_groups() {
 		$found_posts = $query->found_posts;
 
 		if ( $post ) {
-			$post_ids[] = $post->ID;
+			$post_ids[]     = $post->ID;
 			$groups_pushing = get_post_meta( $post->ID, 'dt_connection_groups_pushing', true );
 			delete_post_meta( $post->ID, 'dt_connection_groups_pushing' );
 
@@ -110,23 +110,23 @@ function dt_push_groups() {
 
 			foreach ( $groups_pushing as $key => $group ) {
 				$push_connections = \DT\NbAddon\GroupsTaxonomy\Hooks\get_connections( $group );
-				unset( $groups_pushing[ $key ] );
 
-				if ( empty( $push_connections ) ) {
+				if ( ! empty( $push_connections )) {
+					$connection_map = get_post_meta( $post->ID, 'dt_connection_map', true );
+
+					foreach ( $push_connections as $con ) {
+						if ( empty( $connection_map ) || ! isset( $connection_map['external'] ) || ! in_array( $con['id'], array_keys( $connection_map['external'] ) ) ) { //phpcs:ignore
+							\DT\NbAddon\GroupsTaxonomy\Hooks\push_connection( $con, $post );
+						}
+					}
+
 					if ( ! in_array( $group, $succeeded_groups, true ) ) {
 						$succeeded_groups[] = $group;
 						update_post_meta( $post->ID, 'dt_connection_groups_pushed', $succeeded_groups );
 					}
-					continue;
 				}
 
-				$pushed_connections_map = get_post_meta( $post->ID, 'dt_connection_map', true );
-
-				foreach ( $push_connections as $con ) {
-					if ( empty( $pushed_connections_map ) || ! isset( $pushed_connections_map['external'] ) || ! in_array( $con['id'], array_keys( $pushed_connections_map['external'] ) ) ) { //phpcs:ignore
-						\DT\NbAddon\GroupsTaxonomy\Hooks\push_connection( $con, $post );
-					}
-				}
+				unset( $groups_pushing[ $key ] );
 
 				if ( ! in_array( $group, $succeeded_groups, true ) ) {
 					$succeeded_groups[] = $group;
