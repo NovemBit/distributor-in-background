@@ -93,21 +93,15 @@ function dt_push_groups() {
 
 		if ( $post ) {
 			$post_ids[]     = $post->ID;
-			$groups_pushing = get_post_meta( $post->ID, 'dt_connection_groups_pushing', true );
+			$groups_pushing = get_post_meta( $post->ID, 'dt_connection_groups_pushing', true ) ?: array();
 			delete_post_meta( $post->ID, 'dt_connection_groups_pushing' );
 
 			if ( empty( $groups_pushing ) ) {
 				continue;
-			} elseif ( ! is_array( $groups_pushing ) ) {
-				$groups_pushing = array( $groups_pushing );
 			}
 
-			$groups_pushed    = get_post_meta( $post->ID, 'dt_connection_groups_pushed', true );
+			$groups_pushed    = get_post_meta( $post->ID, 'dt_connection_groups_pushed', true ) ?: array();
 			$succeeded_groups = array();
-
-			if ( empty( $groups_pushed ) ) {
-				$groups_pushed = array();
-			}
 
 			foreach ( $groups_pushing as $key => $group ) {
 				$push_connections = \DT\NbAddon\GroupsTaxonomy\Hooks\get_connections( $group );
@@ -127,7 +121,7 @@ function dt_push_groups() {
 			}
 
 			if ( $added_groups = array_diff( $succeeded_groups,  $groups_pushed ) ) {
-				$groups_pushed = array_merge($groups_pushed, $added_groups);
+				$groups_pushed = array_merge( $groups_pushed, $added_groups );
 				update_post_meta( $post->ID, 'dt_connection_groups_pushed', $groups_pushed );
 			}
 
