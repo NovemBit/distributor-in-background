@@ -17,6 +17,7 @@ function setup() {
 			add_filter( 'dt_allow_send_notifications', __NAMESPACE__ . '\schedule_send_notifications', 10, 2 );
 			add_filter( 'dt_allow_push', __NAMESPACE__ . '\schedule_push_action', 10, 2 );
 			add_filter( 'dt_successfully_distributed_message', __NAMESPACE__ . '\change_successfully_distributed_message', 10, 1 );
+			add_filter( 'dt_subscription_post_timeout', __NAMESPACE__ . '\change_subscription_post_timeout', 10, 1 );
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'send_notification_in_bg', __NAMESPACE__ . '\bg_redistribute_posts', 10, 3 );
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_in_bg', __NAMESPACE__ . '\bg_push_posts', 10, 3 );
@@ -58,11 +59,43 @@ function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, a
 	$post_id = $bulk_args[0]->get_callback_arguments()[0];
 
 	// todo maybe make changes in Distributor plug-in to return redistribution status
-	redistribute_posts( $post_id );
+	$statuses = redistribute_posts( $post_id );
+	$is_failed = false;
 
-	$task_run_filter_log->add_log( 'redistributed post: ' . $post_id );
+	foreach ($statuses as $status) {
+		if (isset($status['response']) && isset($status['target_url'])) {
+			if (!is_wp_error($status['response'])) {
+				$target_url    = $status['target_url'];
+				$response_code = $status['response']['code'] ?? null;
 
-	$task_run_filter_log->set_failed( false );
+				if ($response_code && $response_code != 200) {
+					$is_failed = true;
+					$task_run_filter_log->add_log( "response code: {$response_code}, target: {$target_url}");
+				} else {
+					$task_run_filter_log->add_log( "redistributed post: {$post_id}, target: {$target_url}");
+				}
+			} else {
+				$target_url = $status['target_url'];
+				$message = $status['response']->get_error_message();
+				$task_run_filter_log->add_log( "message: {$message}, target: {$target_url}");
+
+				$is_failed = true;
+			}
+		} else {
+			$task_run_filter_log->add_log( "message: Uncaught error");
+			$is_failed = true;
+		}
+	}
+
+	if ($is_failed) {
+		$task_run_filter_log->set_failed( true );
+	} else {
+		$task_run_filter_log->set_failed( false );
+	}
+
+//	$task_run_filter_log->add_log( 'redistributed post: ' . $post_id );
+//
+//	$task_run_filter_log->set_failed( false );
 	return $task_run_filter_log;
 }
 
@@ -120,11 +153,11 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
  * Perform posts redistribution
  *
  * @param int $post_id Post ID to be redistributed.
+ *
+ * @return array|void
  */
 function redistribute_posts( $post_id ) {
-
-	\Distributor\Subscriptions\send_notifications( $post_id );
-
+	return \Distributor\Subscriptions\send_notifications( $post_id );
 }
 
 /**
@@ -147,4 +180,8 @@ function push_action( $params ) {
  */
 function change_successfully_distributed_message( $message ) {
 	return esc_html__( 'Post scheduled.', 'distributor' );
+}
+
+function change_subscription_post_timeout( $timeout ) {
+	return 45;
 }
