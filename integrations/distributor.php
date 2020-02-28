@@ -17,7 +17,7 @@ function setup() {
 			add_filter( 'dt_allow_send_notifications', __NAMESPACE__ . '\schedule_send_notifications', 10, 2 );
 			add_filter( 'dt_allow_push', __NAMESPACE__ . '\schedule_push_action', 10, 2 );
 			add_filter( 'dt_successfully_distributed_message', __NAMESPACE__ . '\change_successfully_distributed_message', 10, 1 );
-			add_filter( 'dt_subscription_post_timeout', __NAMESPACE__ . '\change_subscription_post_timeout', 10, 1 );
+
 			if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'send_notification_in_bg', __NAMESPACE__ . '\bg_redistribute_posts', 10, 3 );
 				add_filter( \BTM_Plugin_Options::get_instance()->get_task_filter_name_prefix() . 'push_in_bg', __NAMESPACE__ . '\bg_push_posts', 10, 3 );
@@ -193,8 +193,4 @@ function push_action( $params ) {
  */
 function change_successfully_distributed_message( $message ) {
 	return esc_html__( 'Post scheduled.', 'distributor' );
-}
-
-function change_subscription_post_timeout( $timeout ) {
-	return 45;
 }
