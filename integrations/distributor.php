@@ -67,35 +67,48 @@ function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, a
 			if (!is_wp_error($status['response'])) {
 				$target_url    = $status['target_url'];
 				$response_code = $status['response']['code'] ?? null;
+				$response_body = $status['response']['body'] ?? null;
+				$response_body = $response_body ? json_decode($response_body, true) : null;
 
-				if ($response_code && $response_code != 200) {
-					$is_failed = true;
-					$task_run_filter_log->add_log( "response code: {$response_code}, target: {$target_url}");
+				if ($response_code && $target_url) {
+					if ($response_code == 200) {
+						if ($response_body['updated']) {
+							$task_run_filter_log->add_log( "response code: {$response_code}, post: {$post_id}, updated: true, target: {$target_url}");
+						} else {
+							$task_run_filter_log->add_log( "response code: {$response_code}, post: {$post_id}, updated: false, target: {$target_url}");
+						}
+					} else {
+						$is_failed = true;
+
+						if (isset($response_body['message'])) {
+							$task_run_filter_log->add_log( "response code: {$response_code}, message: {$response_body['message']}, target: {$target_url}");
+						} else {
+							$task_run_filter_log->add_log( "response code: {$response_code}, target: {$target_url}");
+						}
+					}
 				} else {
-					$task_run_filter_log->add_log( "redistributed post: {$post_id}, target: {$target_url}");
+					$is_failed = true;
+					$task_run_filter_log->add_log( "message: Uncaught error");
 				}
 			} else {
+				$is_failed  = true;
 				$target_url = $status['target_url'];
-				$message = $status['response']->get_error_message();
+				$message    = $status['response']->get_error_message();
 				$task_run_filter_log->add_log( "message: {$message}, target: {$target_url}");
-
-				$is_failed = true;
 			}
 		} else {
-			$task_run_filter_log->add_log( "message: Uncaught error");
 			$is_failed = true;
+			$task_run_filter_log->add_log( "message: Uncaught error");
 		}
 	}
 
 	if ($is_failed) {
 		$task_run_filter_log->set_failed( true );
+		$task_run_filter_log->set_bulk_fails($bulk_args);
 	} else {
 		$task_run_filter_log->set_failed( false );
 	}
 
-//	$task_run_filter_log->add_log( 'redistributed post: ' . $post_id );
-//
-//	$task_run_filter_log->set_failed( false );
 	return $task_run_filter_log;
 }
 
