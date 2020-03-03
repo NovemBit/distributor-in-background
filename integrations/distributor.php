@@ -30,12 +30,13 @@ function setup() {
  *
  * @param bool $allow_send_notifications Send notification in background, default false.
  * @param int  $post_id Post id.
+ * @param int  $priority
  *
  * @return bool
  */
-function schedule_send_notifications( $allow_send_notifications, $post_id ) {
+function schedule_send_notifications( $allow_send_notifications, $post_id, $priority = 10 ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
-		$btm_task     = new \BTM_Task( 'send_notification_in_bg', [], 1 );
+		$btm_task     = new \BTM_Task( 'send_notification_in_bg', [], 1, $priority );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $post_id ], -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
 
