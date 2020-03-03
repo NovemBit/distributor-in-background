@@ -56,14 +56,57 @@ function schedule_send_notifications( $allow_send_notifications, $post_id, $prio
  * @return \BTM_Task_Run_Filter_Log
  */
 function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $callback_args, array $bulk_args ) {
-	$post_id = $bulk_args[0]->get_callback_arguments()[0];
+	$post_id   = $bulk_args[0]->get_callback_arguments()[0];
+	$statuses  = redistribute_posts( $post_id );
+	$is_failed = false;
 
-	// todo maybe make changes in Distributor plug-in to return redistribution status
-	redistribute_posts( $post_id );
+	foreach ($statuses as $status) {
+		if (isset($status['response']) && isset($status['target_url'])) {
+			if (!is_wp_error($status['response'])) {
+				$target_url    = $status['target_url'];
+				$response_code = $status['response']['code'] ?? null;
+				$response_body = $status['response']['body'] ?? null;
+				$response_body = $response_body ? json_decode($response_body, true) : null;
 
-	$task_run_filter_log->add_log( 'redistributed post: ' . $post_id );
+				if ($response_code && $target_url) {
+					if ($response_code == 200) {
+						if ($response_body['updated']) {
+							$task_run_filter_log->add_log( "response code: {$response_code}, post: {$post_id}, updated: true, target: {$target_url}");
+						} else {
+							$task_run_filter_log->add_log( "response code: {$response_code}, post: {$post_id}, updated: false, target: {$target_url}");
+						}
+					} else {
+						$is_failed = true;
 
-	$task_run_filter_log->set_failed( false );
+						if (isset($response_body['message'])) {
+							$task_run_filter_log->add_log( "response code: {$response_code}, message: {$response_body['message']}, target: {$target_url}");
+						} else {
+							$task_run_filter_log->add_log( "response code: {$response_code}, target: {$target_url}");
+						}
+					}
+				} else {
+					$is_failed = true;
+					$task_run_filter_log->add_log( "message: Uncaught error");
+				}
+			} else {
+				$is_failed  = true;
+				$target_url = $status['target_url'];
+				$message    = $status['response']->get_error_message();
+				$task_run_filter_log->add_log( "message: {$message}, target: {$target_url}");
+			}
+		} else {
+			$is_failed = true;
+			$task_run_filter_log->add_log( "message: Uncaught error");
+		}
+	}
+
+	if ($is_failed) {
+		$task_run_filter_log->set_failed( true );
+		$task_run_filter_log->set_bulk_fails($bulk_args);
+	} else {
+		$task_run_filter_log->set_failed( false );
+	}
+
 	return $task_run_filter_log;
 }
 
@@ -121,11 +164,11 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
  * Perform posts redistribution
  *
  * @param int $post_id Post ID to be redistributed.
+ *
+ * @return array|void
  */
 function redistribute_posts( $post_id ) {
-
-	\Distributor\Subscriptions\send_notifications( $post_id );
-
+	return \Distributor\Subscriptions\send_notifications( $post_id );
 }
 
 /**
