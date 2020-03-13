@@ -34,7 +34,7 @@ function setup() {
  *
  * @return bool
  */
-function schedule_send_notifications( $allow_send_notifications, $post_id, $priority = 10 ) {
+function schedule_send_notifications( $allow_send_notifications, $post_id, $priority = 15 ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task     = new \BTM_Task( 'send_notification_in_bg', [], 1, $priority );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $post_id ], -10 );

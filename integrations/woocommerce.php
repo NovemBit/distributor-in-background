@@ -58,7 +58,7 @@ function schedule_variation_insert( $variation_processing_allowed, $post_id, $re
  */
 function schedule_variation_update( $variation_processing_allowed, $parent_post_id, $variation_id ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
-		$btm_task     = new \BTM_Task( 'wc_variations_update_in_bg', [ $parent_post_id ], 10 );
+		$btm_task     = new \BTM_Task( 'wc_variations_update_in_bg', [ $parent_post_id ], 20 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $variation_id ], -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
 
