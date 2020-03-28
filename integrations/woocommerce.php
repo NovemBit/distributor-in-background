@@ -105,12 +105,17 @@ function bg_wc_variations_update( \BTM_Task_Run_Filter_Log $task_run_filter_log,
 		$variations[] = $var_arg->get_callback_arguments()[0];
 	}
 
-	variation_update( $parent_post_id, $variations );
+	$responses = variation_update( $parent_post_id, $variations );
+	$is_failed = false;
+	\DT\NbAddon\DTInBackground\Helpers\add_btm_logs( $parent_post_id, $responses, $task_run_filter_log, $is_failed );
 
-	$message = 'updated variation' . ( count( $variations ) > 1 ? 's' : '' ) . ': ' . implode( ', ', $variations ) . ' in ' . $parent_post_id . ' post';
-	$task_run_filter_log->add_log( $message );
+	if ( $is_failed ) {
+		$task_run_filter_log->set_failed( true );
+		$task_run_filter_log->set_bulk_fails( $bulk_args );
+	} else {
+		$task_run_filter_log->set_failed( false );
+	}
 
-	$task_run_filter_log->set_failed( false );
 	return $task_run_filter_log;
 }
 

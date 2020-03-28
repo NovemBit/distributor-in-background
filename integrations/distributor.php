@@ -60,6 +60,7 @@ function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, a
 	$statuses  = redistribute_posts( $post_id );
 	$is_failed = false;
 
+	// todo: use \DT\NbAddon\DTInBackground\Helpers\add_btm_logs() instead after appropriate testing
 	foreach ($statuses as $status) {
 		if (isset($status['response']) && isset($status['target_url'])) {
 			if (!is_wp_error($status['response'])) {
