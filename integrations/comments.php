@@ -80,11 +80,17 @@ function bg_comments_insert( \BTM_Task_Run_Filter_Log $task_run_filter_log, arra
 	$remote_post_id = $args[1];
 	$signature      = $args[2];
 	$target_url     = $args[3];
-	\DT\NbAddon\Comments\Hub\handle_initial_push( $post_id, $remote_post_id, $signature, $target_url );
-	$message = "initial comment insert for {$post_id} which distributed as {$remote_post_id} in {$target_url}";
-	$task_run_filter_log->add_log( $message );
+	$responses = \DT\NbAddon\Comments\Hub\handle_initial_push( $post_id, $remote_post_id, $signature, $target_url );
+	$is_failed = false;
+	\DT\NbAddon\DTInBackground\Helpers\add_btm_logs( $post_id, $responses, $task_run_filter_log, $is_failed );
 
-	$task_run_filter_log->set_failed( false );
+	if ( $is_failed ) {
+		$task_run_filter_log->set_failed( true );
+		$task_run_filter_log->set_bulk_fails( $bulk_args );
+	} else {
+		$task_run_filter_log->set_failed( false );
+	}
+
 	return $task_run_filter_log;
 }
 /**
