@@ -81,12 +81,13 @@ function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, a
  *
  * @param bool  $allow_push Push will be processed.
  * @param array $params Array containing callback params.
+ * @param int   $priority
  *
  * @return bool
  */
-function schedule_push_action( $allow_push, $params ) {
+function schedule_push_action( $allow_push, $params, $priority = 5 ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
-		$btm_task     = new \BTM_Task( 'push_in_bg', [], 1 );
+		$btm_task     = new \BTM_Task( 'push_in_bg', [], 1, $priority );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $params ], -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
 
