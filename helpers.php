@@ -23,7 +23,11 @@ function is_btm_active() {
  * @param bool $is_failed
  */
 function add_btm_logs( int $post_id, array $responses, \BTM_Task_Run_Filter_Log $task_run_filter_log, bool &$is_failed ) {
-	$is_failed = false;
+	$is_failed          = false;
+	$http_success_codes = [
+		'ok'      => 200,
+		'created' => 201
+	];
 
 	foreach ( $responses as $response ) {
 		if ( isset( $response['response'] ) && isset( $response['target_url'] ) ) {
@@ -34,7 +38,7 @@ function add_btm_logs( int $post_id, array $responses, \BTM_Task_Run_Filter_Log 
 				$response_body = $response_body ? json_decode( $response_body, true ) : null;
 
 				if ( $response_code && $target_url ) {
-					if ( $response_code == 200 ) {
+					if ( in_array( $response_code, $http_success_codes ) ) {
 						$message = "target: {$target_url}, response code: {$response_code}, post: {$post_id}";
 
 						if ( $response_body ) {
