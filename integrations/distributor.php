@@ -108,20 +108,28 @@ function schedule_push_action( $allow_push, $params, $priority = 5 ) {
  */
 function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $callback_args, array $bulk_args ) {
 	$params = $bulk_args[0]->get_callback_arguments()[0];
-
 	$result = push_action( $params );
-	$status = '';
+
 	if ( ! empty( $result['results']['external'] ) ) {
-		$status = reset($result['results']['external'])['status'];
+		$responses = $result['results']['external'];
+		$is_failed = false;
+		\DT\NbAddon\DTInBackground\Helpers\add_btm_logs( $params['postId'], $responses, $task_run_filter_log, $is_failed );
+
+		if ( $is_failed ) {
+			$task_run_filter_log->set_failed( true );
+			$task_run_filter_log->set_bulk_fails( $bulk_args );
+		} else {
+			$task_run_filter_log->set_failed( false );
+		}
 	} elseif ( ! empty( $result['results']['internal'] ) ) {
 		$status = reset($result['results']['internal'])['status'];
-	}
 
-	if ( 'success' === $status ) {
-		$task_run_filter_log->add_log( 'pushed post: ' . $params['postId'] );
-		$task_run_filter_log->set_failed( false );
-	} else {
-		$task_run_filter_log->add_log( 'failed to push post: ' . $params['postId'] );
+		if ( 'success' === $status ) {
+			$task_run_filter_log->add_log( 'pushed post: ' . $params['postId'] );
+			$task_run_filter_log->set_failed( false );
+		} else {
+			$task_run_filter_log->add_log( 'failed to push post: ' . $params['postId'] );
+		}
 	}
 
 	return $task_run_filter_log;
