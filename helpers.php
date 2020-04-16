@@ -53,9 +53,9 @@ function add_btm_logs( int $post_id, array $responses, \BTM_Task_Run_Filter_Log 
 						$is_failed = true;
 
 						if ( isset( $response_body['message'] ) ) {
-							$task_run_filter_log->add_log( "target: {$target_url}, response code: {$response_code}, message: {$response_body['message']}" );
+							$task_run_filter_log->add_log( "target: {$target_url}, response code: {$response_code}, post: {$post_id}, message: {$response_body['message']}" );
 						} else {
-							$task_run_filter_log->add_log( "target: {$target_url}, response code: {$response_code}" );
+							$task_run_filter_log->add_log( "target: {$target_url}, response code: {$response_code}, post: {$post_id}" );
 						}
 					}
 				} else {
@@ -66,7 +66,7 @@ function add_btm_logs( int $post_id, array $responses, \BTM_Task_Run_Filter_Log 
 				$is_failed  = true;
 				$target_url = $response['target_url'];
 				$message    = $response['response']->get_error_message();
-				$task_run_filter_log->add_log( "target: {$target_url}, message: {$message}" );
+				$task_run_filter_log->add_log( "target: {$target_url}, post: {$post_id}, message: {$message}" );
 			}
 		} else {
 			$is_failed = true;
