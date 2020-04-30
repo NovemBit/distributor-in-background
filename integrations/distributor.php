@@ -172,14 +172,14 @@ function change_successfully_distributed_message( $message ) {
 
 /**
  * @param bool $continue Delete subscriptions in background
- * @param int $post_id
+ * @param array $params Bulk task callback arguments
  *
  * @return bool
  */
-function schedule_delete_subscription( bool $continue, int $post_id ) {
+function schedule_delete_subscription( bool $continue, array $params ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task     = new \BTM_Task( 'delete_in_bg', [], 1, 15 );
-		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $post_id ], -10 );
+		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( $params, -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
 
 		return false;
@@ -196,10 +196,10 @@ function schedule_delete_subscription( bool $continue, int $post_id ) {
  * @return \BTM_Task_Run_Filter_Log
  */
 function bg_delete_subscriptions( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $callback_args, array $bulk_args ) {
-	$post_id            = $bulk_args[0]->get_callback_arguments()[0]['post_id'];
-	$original_source_id = $bulk_args[0]->get_callback_arguments()[0]['original_source_id'];
-	$original_post_id   = $bulk_args[0]->get_callback_arguments()[0]['original_post_id'];
-	$subscriptions      = $bulk_args[0]->get_callback_arguments()[0]['subscriptions'];
+	$post_id            = $bulk_args[0]->get_callback_arguments()['post_id'];
+	$original_source_id = $bulk_args[0]->get_callback_arguments()['original_source_id'];
+	$original_post_id   = $bulk_args[0]->get_callback_arguments()['original_post_id'];
+	$subscriptions      = $bulk_args[0]->get_callback_arguments()['subscriptions'];
 	$result             = [];
 
 	if ( ! empty( $original_source_id ) && ! empty( $original_post_id ) ) {
@@ -241,13 +241,12 @@ function bg_delete_subscriptions( \BTM_Task_Run_Filter_Log $task_run_filter_log,
 			$response = wp_remote_post(
 				untrailingslashit( $target_url ) . '/wp/v2/dt_subscription/receive',
 				[
-					'timeout'  => 5,
-					'blocking' => \Distributor\Utils\is_dt_debug(),
+					'timeout'  => 45,
 					'body'     => [
 						'post_id'          => $remote_post_id,
 						'signature'        => $signature,
 						'original_deleted' => true,
-					]
+					],
 				]
 			);
 
