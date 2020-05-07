@@ -178,7 +178,7 @@ function change_successfully_distributed_message( $message ) {
  */
 function schedule_delete_subscription( bool $continue, array $params ) {
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
-		$btm_task     = new \BTM_Task( 'delete_in_bg', [], 1, 15 );
+		$btm_task     = new \BTM_Task( 'delete_in_bg', [], 1, 5 );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( $params, -10 );
 		\BTM_Task_Manager::get_instance()->register_task( $btm_task, [ $btm_bulk_arg ] );
 
