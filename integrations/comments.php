@@ -105,14 +105,22 @@ function bg_comments_insert( \BTM_Task_Run_Filter_Log $task_run_filter_log, arra
 function bg_comments_update( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $callback_args, array $bulk_args ) {
 	$parent_post_id = $callback_args[0];
 	$comments       = array();
+
 	foreach ( $bulk_args as $comment_arg ) {
 		$comments[] = $comment_arg->get_callback_arguments()[0];
 	}
-	\DT\NbAddon\Comments\Hub\handle_update( $parent_post_id, $comments );
-	$message = 'updated comment' . ( count( $comments ) > 1 ? 's' : '' ) . ': ' . implode( ', ', $comments ) . ' in ' . $parent_post_id . ' post';
-	$task_run_filter_log->add_log( $message );
 
-	$task_run_filter_log->set_failed( false );
+	$responses = \DT\NbAddon\Comments\Hub\handle_update( $parent_post_id, $comments );
+	$is_failed = false;
+	\DT\NbAddon\DTInBackground\Helpers\add_btm_logs( $parent_post_id, $responses, $task_run_filter_log, $is_failed );
+
+	if ( $is_failed ) {
+		$task_run_filter_log->set_failed( true );
+		$task_run_filter_log->set_bulk_fails( $bulk_args );
+	} else {
+		$task_run_filter_log->set_failed( false );
+	}
+
 	return $task_run_filter_log;
 }
 
