@@ -114,6 +114,17 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
 
 	if ( ! empty( $result['results']['external'] ) ) {
 		$responses = $result['results']['external'];
+
+		foreach ( $responses as &$response ) {
+			if ( isset( $response['response'] ) && !is_wp_error( $response['response'] ) ) {
+				$response_code = $response['response']['code'] ?? null;
+
+				if ( $response_code == 201 ) {
+					$response['response']['body'] = ['message' => 'created'];
+				}
+			}
+		}
+
 		$is_failed = false;
 		\DT\NbAddon\DTInBackground\Helpers\add_btm_logs( $params['postId'], $responses, $task_run_filter_log, $is_failed );
 
