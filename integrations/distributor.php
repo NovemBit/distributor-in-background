@@ -88,6 +88,12 @@ function bg_redistribute_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, a
  * @return bool
  */
 function schedule_push_action( $allow_push, $params, $priority = 5 ) {
+	$post_id             = $params[ 'postId' ];
+	$connections         = array_column( $params[ 'connections' ], 'id' );
+	$connections_pushing = get_post_meta( $post_id, 'dt_connections_pending', true ) ?: [];
+	$connections_pushing = array_merge( $connections_pushing, $connections );
+	update_post_meta( $post_id, 'dt_connections_pending', $connections_pushing );
+
 	if ( \DT\NbAddon\DTInBackground\Helpers\is_btm_active() ) {
 		$btm_task     = new \BTM_Task( 'push_in_bg', [], 1, $priority );
 		$btm_bulk_arg = new \BTM_Task_Bulk_Argument( [ $params ], -10 );
@@ -114,6 +120,7 @@ function bg_push_posts( \BTM_Task_Run_Filter_Log $task_run_filter_log, array $ca
 
 	if ( ! empty( $result['results']['external'] ) ) {
 		$responses = $result['results']['external'];
+		delete_post_meta( $params['postId'], 'dt_connections_pending' );
 
 		foreach ( $responses as &$response ) {
 			if ( isset( $response['response'] ) && !is_wp_error( $response['response'] ) ) {
