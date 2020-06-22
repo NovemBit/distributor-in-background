@@ -68,6 +68,9 @@ function add_btm_logs( int $post_id, array $responses, \BTM_Task_Run_Filter_Log 
 				$message    = $response['response']->get_error_message();
 				$task_run_filter_log->add_log( "target: {$target_url}, post: {$post_id}, message: {$message}" );
 			}
+		} elseif (isset($response['response'])) {
+			$is_failed  = true;
+			$task_run_filter_log->add_log( "post: {$post_id}, message: {$response['response']}" );
 		} else {
 			$is_failed = true;
 			$task_run_filter_log->add_log( "message: Uncaught error" );
